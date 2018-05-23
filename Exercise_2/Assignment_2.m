@@ -6,8 +6,8 @@ pkg load statistics
 
 % Generate C_x,C_y
 Initial_matrix = [-2 -1 0 1 2;-2 -1 0 1 2;-2 -1 0 1 2;-2 -1 0 1 2;-2 -1 0 1 2];
-C_x = Initial_matrix
-C_y = C_x'
+C_x = Initial_matrix;
+C_y = C_x';
 
 % Set value of gamma
 gamma = 0.5;
@@ -24,12 +24,15 @@ I_x = imfilter(I,G_x);
 I_y = imfilter(I,G_y);
 
 % Show Image filter by G_x,G_y
-figure(1), imshow(I_x), title("Filter Image By G_x");
-figure(2), imshow(I_y), title("Filter Image By G_y");
+figure(1), 
+subplot(1,3,1); imshow(I_x,[]), title("Filter Image By G_x");
+subplot(1,3,2); imshow(I_y,[]), title("Filter Image By G_y");
 
 % c) Compute and show the gradient magnitude
 G = sqrt(I_x.^2 + I_y.^2);
-figure(3),imshow(G),title("Gradient magnitude Image");
+figure(1),
+subplot(1,3,3); imshow(G),[], title("Gradient magnitude Image");
+%figure(3),imshow(G),title("Gradient magnitude Image");
 
 
 % Task 2: Förstner interest operator:
@@ -37,38 +40,35 @@ figure(3),imshow(G),title("Gradient magnitude Image");
 % a) Compute the autocorrelation matrix ?? for each pixel
 
 % Matrix W
-W = ones(7);
+W_N = ones(5);
 
 % Calculate M
 I_xx = I_x.*I_x;
 I_xy = I_x.*I_y;
 I_yy = I_y.*I_y;
-I_xx = imfilter(I_xx,W);
-I_xy = imfilter(I_xy,W);
-I_yy = imfilter(I_yy,W);
-figure(4),imshow(I_xx),title("I_xx");
-figure(5),imshow(I_xy),title("I_xy");
-figure(6),imshow(I_yy),title("I_yy");
+I_xx = imfilter(I_xx,W_N);
+I_xy = imfilter(I_xy,W_N);
+I_yy = imfilter(I_yy,W_N);
 % Initial Cornerness and Roundness Matrix
-E = double(zeros(size(I)(1),(size(I)(2))));
-F = E;
+W = double(zeros(size(I)(1),(size(I)(2))));
+Q = W;
 for i= 1:size(I)(1)
   for j= 1:size(I)(2)
       M = [I_xx(i,j) I_xy(i,j); I_xy(i,j) I_yy(i,j)];
       t = (trace(M)/2)^2 - det(M);
       if (t>0)
-        % Calculate cornerness E
-        E(i,j) = trace(M)/2 - sqrt(t);
+        % Calculate cornerness W
+        W(i,j) = trace(M)/2 - sqrt(t);
         
-        % Calculate roundness F
-        F(i,j) = 4*det(M)/(trace(M)^2);
+        % Calculate roundness Q
+        Q(i,j) = 4*det(M)/(trace(M)^2);
       end 
   end
 end
 
-%E_final = (E > 0.05);
-%F_final = (F > 0.5);
+% Find corner point candidates
+W_final = (W > 0.1);
+Q_final = (Q > 0.5);
 
-R = E.* F;
-figure(7),imshow(R),title("detected image")
-figure(8), imshow(0.5*255*R + 0.5*I_0), title("Final image")
+R = W_final.* Q_final;
+figure(2), imshow(0.5*255*R + 0.5*I_0,[]), title("Final image")
